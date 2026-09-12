@@ -278,6 +278,115 @@ header.chapter-sep .cfile{margin-left:12px}
 }
 @media (prefers-reduced-motion:reduce){ .mdb-resume,.shx-bm{transition:none} }
 @media print{ .mdb-resume{display:none!important} }
+
+/* ===================== V2: topbar tool row =====================
+   Three 32px controls share one absolutely-positioned flex row inside #topbar.
+   #topbar is position:sticky, which is already a positioned containing block, so
+   the row needs no position:relative on the topbar (that would destroy sticky)
+   and adds no flex item that could change the bar's height. */
+#topbar{padding-right:140px}
+#mdb-tools{position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  display:flex;align-items:center;gap:8px}
+#mdb-tools .mdb-resume{position:static;right:auto;top:auto;transform:none}
+.mdb-tb{position:relative;width:32px;height:32px;padding:0;display:inline-flex;
+  align-items:center;justify-content:center;border:1px solid var(--line);border-radius:9px;
+  background:var(--surface);color:var(--accent);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:background .15s ease,border-color .15s ease}
+.mdb-tb svg{width:16px;height:16px;display:block;fill:none;stroke:currentColor;
+  stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mdb-tb:hover{background:var(--accent-soft);border-color:var(--accent)}
+.mdb-tb:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mdb-tb[aria-expanded="true"]{background:var(--accent-soft);border-color:var(--accent)}
+/* the count bubble is absolutely placed, so appearing or changing never reflows
+   the bar */
+.mdb-tb .tb-n{position:absolute;top:-5px;right:-5px;min-width:15px;height:15px;padding:0 3px;
+  border-radius:99px;background:var(--accent);color:var(--surface);
+  font:600 9.5px/15px -apple-system,BlinkMacSystemFont,"IBM Plex Sans","Segoe UI",sans-serif;
+  text-align:center;pointer-events:none}
+.mdb-tb .tb-n[hidden]{display:none!important}
+
+/* ===================== V2: shared panel (bookmarks + search) =====================
+   Same visual language as the Section Navigator sheet, but its own element and its
+   own state, so the two never share DOM. [hidden] is forced past the flex display
+   value, or a closed panel would keep hit-testing over the page. */
+.mdbp-scrim{position:fixed;inset:0;z-index:65;background:rgba(10,13,18,.42);
+  opacity:0;transition:opacity .18s ease}
+.mdbp-scrim.on{opacity:1}
+.mdbp{position:fixed;z-index:70;display:flex;flex-direction:column;overflow:hidden;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 18px 48px rgba(10,13,18,.22);
+  color:var(--ink);font:13px/1.45 -apple-system,BlinkMacSystemFont,"IBM Plex Sans","Segoe UI",Helvetica,Arial,sans-serif;
+  opacity:0;transform:translateY(-6px);
+  transition:opacity .18s ease,transform .18s ease}
+.mdbp.on{opacity:1;transform:none}
+.mdbp[hidden],.mdbp-scrim[hidden]{display:none!important}
+.mdbp-h{display:flex;align-items:flex-start;gap:12px;padding:14px 14px 10px;flex:none}
+.mdbp-k{margin:0;font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:10.5px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.mdbp-m{margin:4px 0 0;font-size:12.5px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.mdbp-x{margin-left:auto;flex:none;width:34px;height:34px;margin-top:-4px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:0;border-radius:9px;background:transparent;color:var(--ink3);cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.mdbp-x:hover{background:var(--accent-soft);color:var(--ink)}
+.mdbp-x:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mdbp-x svg{width:17px;height:17px;display:block;fill:none;stroke:currentColor;
+  stroke-width:2.2;stroke-linecap:round}
+.mdbp-qw{flex:none;padding:0 14px 10px;display:flex;align-items:center;gap:8px}
+.mdbp-q{flex:1 1 auto;min-width:0;height:38px;padding:0 11px;border:1px solid var(--line);
+  border-radius:10px;background:var(--paper);color:var(--ink);font:inherit;font-size:14px}
+.mdbp-q::placeholder{color:var(--ink3)}
+.mdbp-q:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.mdbp-l{margin:0;padding:2px 0 8px;list-style:none;overflow-y:auto;overscroll-behavior:contain;
+  flex:1 1 auto;-webkit-overflow-scrolling:touch}
+.mdbp-hd{padding:11px 14px 3px;font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);
+  border-top:1px solid var(--line);margin-top:5px;overflow-wrap:anywhere}
+.mdbp-hd:first-child{border-top:0;margin-top:0}
+.mdbp-row{display:flex;align-items:stretch}
+.mdbp-i{flex:1 1 auto;min-width:0;text-align:left;border:0;border-left:3px solid transparent;
+  background:transparent;padding:9px 8px 10px 14px;color:var(--ink2);font:inherit;
+  font-size:13.5px;line-height:1.35;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mdbp-i:hover{background:var(--accent-soft);color:var(--ink)}
+.mdbp-i:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.mdbp-n{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:11px;
+  color:var(--ink3);margin-right:7px}
+.mdbp-t{color:var(--ink);font-weight:500;overflow-wrap:anywhere}
+.mdbp-s{display:block;margin-top:3px;color:var(--ink3);font-size:12.5px;
+  overflow-wrap:anywhere}
+.mdbp-s mark{background:var(--accent-soft);color:var(--ink);border-radius:3px;padding:0 2px;
+  font-weight:600}
+.mdbp-c{margin-left:7px;font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  font-size:10px;color:var(--ink3)}
+.mdbp-del{flex:none;width:46px;display:inline-flex;align-items:center;justify-content:center;
+  border:0;background:transparent;color:var(--ink3);cursor:pointer;padding:0;
+  -webkit-tap-highlight-color:transparent;transition:color .13s ease,background .13s ease}
+.mdbp-del svg{width:16px;height:16px;display:block;fill:none;stroke:currentColor;
+  stroke-width:2;stroke-linecap:round}
+.mdbp-del:hover{color:var(--accent);background:var(--accent-soft)}
+.mdbp-del:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.mdbp-e{margin:0;padding:24px 16px 28px;text-align:center;color:var(--ink3);font-size:13px}
+.mdbp-f{flex:none;margin:0;padding:9px 14px calc(11px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--line);font-size:11px;color:var(--ink3)}
+
+@media (max-width:860px){
+  #topbar{padding-right:calc(134px + var(--safe-r))}
+  #mdb-tools{right:calc(10px + var(--safe-r));gap:6px}
+  .mdb-tb{width:34px;height:34px}
+  .mdbp{left:0;right:0;bottom:0;top:auto!important;width:auto!important;
+    max-height:min(78dvh,560px)!important;border-radius:16px 16px 0 0;
+    transform:translateY(14px)}
+  .mdbp.on{transform:none}
+  .mdbp-h{padding-top:16px}
+  .mdbp-h,.mdbp-qw,.mdbp-f{padding-left:16px;padding-right:16px}
+  .mdbp-i{min-height:52px;padding:12px 16px;font-size:14px}
+  .mdbp-del{width:54px}
+}
+@media (prefers-reduced-motion:reduce){
+  .mdb-tb,.mdbp,.mdbp-scrim,.mdbp-i,.mdbp-del{transition:none}
+  .mdbp{transform:none}
+}
+@media print{ #mdb-tools,.mdbp,.mdbp-scrim{display:none!important} }
 </style>
 </head>
 <body>
@@ -1869,6 +1978,748 @@ header.chapter-sep .cfile{margin-left:12px}
 
   /* Built once, up-front: the 38 triggers carry aria-controls="lw-sheet", so that
      id must resolve from the first paint rather than only after the first open. */
+
+  /* ==================================================================== *
+   *  V2 — "Meine Lesezeichen" manager + global search                    *
+   *                                                                      *
+   *  Both features are readers of what already exists:                  *
+   *    · mounting            -> the one mount() / __lwReady pipeline via *
+   *                             withChapter()                            *
+   *    · scrolling           -> window.__mdbGoToSection() / goToChapter()*
+   *                             (no second scroll implementation exists) *
+   *    · bookmark storage    -> bookmarks() / toggleBookmark(), key      *
+   *                             mdb.bookmarks, same {slug,id} format     *
+   *    · persistence         -> the existing queued/debounced store      *
+   *  The search index is built from the base64 payloads that are already *
+   *  in the document, so it covers unmounted chapters and never touches  *
+   *  chapter content or the iframes.                                     *
+   * ==================================================================== */
+
+  /* ---------- payload-derived, read-only chapter index ---------- */
+  var xCache = Object.create(null);        /* slug -> {secs,byId} | false */
+  var xChars = 0;                          /* indexed text size, for reporting */
+
+  /* 1:1 character folding: lower-case plus the German umlauts, so "Ubung"
+     finds "Übung". Every replacement is one character for one character, which
+     keeps offsets in the folded string aligned with the original text — that is
+     what lets the snippet highlight the real match. */
+  function xFold(s){
+    return s.toLowerCase()
+      .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u')
+      .replace(/ß/g, 's');
+  }
+
+  function xStrip(h){
+    return h
+      .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, ' ')
+      .replace(/<!--[\s\S]*?-->/g, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"').replace(/&#39;/g, "'")
+      .replace(/&[a-z]+;/gi, ' ')
+      .replace(/\s+/g, ' ').trim();
+  }
+
+  /* Decodes one chapter payload and derives, per section: its id, its TOC number
+     and label (from the chapter's own nav.mini — the very source the in-frame
+     navigator uses, so wording and numbering match) and its plain text. The
+     payload itself is only read. */
+  function xBuild(slug){
+    if (slug in xCache) return xCache[slug];
+    xCache[slug] = false;
+    var el = document.getElementById('b64-' + slug);
+    if (!el) return false;
+    var raw;
+    try{ raw = b64DecodeUnicode(el.textContent.trim()); }
+    catch(e){ return false; }
+    if (!raw) return false;
+
+    var labels = Object.create(null), nums = Object.create(null);
+    var navm = /<nav class="mini"[\s\S]*?<\/nav>/i.exec(raw);
+    if (navm){
+      var are = /<a\s+href="#([\w\-]+)"[^>]*>([\s\S]*?)<\/a>/gi, am;
+      while ((am = are.exec(navm[0]))){
+        if (am[1] in labels) continue;                  /* first wins */
+        var nm = /<span class="n">([\s\S]*?)<\/span>/i.exec(am[2]);
+        nums[am[1]] = nm ? xStrip(nm[1]) : '';
+        labels[am[1]] = xStrip(am[2].replace(/<span class="n">[\s\S]*?<\/span>/i, ''));
+      }
+    }
+
+    var sre = /<section\b[^>]*\bid="([\w\-]+)"[^>]*>/gi, marks = [], sm;
+    while ((sm = sre.exec(raw))) marks.push({id: sm[1], at: sm.index});
+    if (!marks.length) return false;
+
+    var secs = [];
+
+    /* Everything before the first <section> is real teaching content — the chapter
+       title, the strand line and the whole "Lernziel" list — so it has to be
+       searchable too. Its own TOC block is removed first: those labels are made
+       searchable on the sections they belong to (below), which is where a reader
+       expects to land. This entry carries no section id; selecting it goes to the
+       chapter start through goToChapter(). */
+    var front = xStrip((navm ? raw.slice(0, marks[0].at).replace(navm[0], ' ')
+                             : raw.slice(0, marks[0].at)));
+    if (front.length > 40){
+      xChars += front.length;
+      secs.push({id: '', num: '·', label: 'Kapitelanfang & Lernziel',
+                 t: front, f: xFold(front)});
+    }
+
+    for (var i = 0; i < marks.length; i++){
+      var end = (i + 1 < marks.length) ? marks[i + 1].at : raw.length;
+      var slice = raw.slice(marks[i].at, end);
+      var id = marks[i].id;
+      var lab = labels[id] || '';
+      if (!lab){
+        /* a section the TOC does not list still has to be findable: fall back to
+           its own heading, without inventing a TOC step for it */
+        var hm = /<h[23][^>]*>([\s\S]*?)<\/h[23]>/i.exec(slice);
+        lab = hm ? xStrip(hm[1]) : '';
+        if (lab.length > 64) lab = lab.slice(0, 64) + '…';
+      }
+      var text = xStrip(slice);
+      /* a TOC label that the section's own heading words differently would
+         otherwise be unfindable; appended at the end, so every offset already
+         computed stays valid */
+      if (lab && xFold(text).indexOf(xFold(lab)) < 0) text += ' · ' + lab;
+      xChars += text.length;
+      secs.push({id: id, num: nums[id] || String(i + 1), label: lab,
+                 t: text, f: xFold(text)});
+    }
+    var byId = Object.create(null);
+    for (var j = 0; j < secs.length; j++) byId[secs[j].id] = secs[j];
+    xCache[slug] = {secs: secs, byId: byId};
+    return xCache[slug];
+  }
+
+  function xTitle(slug){
+    var s = document.getElementById('sec-' + slug);
+    var t = s ? s.querySelector('.ctitle') : null;
+    return t ? t.textContent.trim() : slug;
+  }
+
+  /* Labels come from the mounted chapter when it is mounted (authoritative), and
+     from the payload index otherwise — never by mounting a chapter just to read
+     a label. */
+  function xLabel(slug, id){
+    var meta = metaOf(slug);
+    if (meta){
+      var k = meta.ids.indexOf(id);
+      if (k >= 0) return {num: meta.nums[k] || String(k + 1), label: meta.labels[k] || ''};
+    }
+    var ix = xBuild(slug), s = ix && ix.byId[id];
+    return s ? {num: s.num, label: s.label} : {num: '', label: ''};
+  }
+
+  /* ---------- the one way either panel navigates ---------- */
+  function xGoto(slug, id){
+    /* the chapter-start entry has no section id — goToChapter() is the existing
+       owner for that move and mounts the chapter itself */
+    if (!id){ goToChapter(slug); return; }
+    withChapter(slug, function(ok){
+      if (!ok){ goToChapter(slug); return; }
+      if (!window.__mdbGoToSection(slug, id)) goToChapter(slug);
+    });
+  }
+
+  /* ---------- shared panel shell ---------- */
+  var xOpenPanel = null;
+
+  function xSvg(d, w){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' +
+      (w || 2) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      d + '</svg>';
+  }
+
+  function xMakePanel(id, kicker){
+    var P = {id: id, open: false, trig: null, items: []};
+
+    P.scrim = document.createElement('div');
+    P.scrim.className = 'mdbp-scrim';
+    P.scrim.hidden = true;
+
+    P.el = document.createElement('div');
+    P.el.className = 'mdbp';
+    P.el.id = id;
+    P.el.setAttribute('role', 'dialog');
+    P.el.setAttribute('aria-labelledby', id + '-t');
+    P.el.hidden = true;
+
+    var h = document.createElement('div'); h.className = 'mdbp-h';
+    var box = document.createElement('div');
+    var k = document.createElement('p'); k.className = 'mdbp-k'; k.id = id + '-t';
+    k.textContent = kicker;
+    P.meta = document.createElement('p'); P.meta.className = 'mdbp-m';
+    P.meta.setAttribute('aria-live', 'polite');
+    box.appendChild(k); box.appendChild(P.meta);
+    var x = document.createElement('button');
+    x.type = 'button'; x.className = 'mdbp-x';
+    x.setAttribute('aria-label', kicker + ' schließen');
+    x.innerHTML = xSvg('<path d="M6 6l12 12M18 6L6 18"/>', 2.2);
+    x.addEventListener('click', function(){ P.close(true); });
+    h.appendChild(box); h.appendChild(x);
+
+    P.list = document.createElement('ul'); P.list.className = 'mdbp-l';
+
+    P.el.appendChild(h);
+    P.el.appendChild(P.list);
+    document.body.appendChild(P.scrim);
+    document.body.appendChild(P.el);
+    P.scrim.addEventListener('click', function(){ P.close(true); });
+
+    P.place = function(){
+      if (!P.open) return;
+      if (isMobile()){
+        P.el.style.left = ''; P.el.style.top = '';
+        P.el.style.width = ''; P.el.style.maxHeight = '';
+        return;
+      }
+      var t = P.trig;
+      if (!t) return;
+      var r = t.getBoundingClientRect();
+      var w = Math.min(460, Math.max(320, Math.round(window.innerWidth * 0.34)));
+      var left = Math.max(12, Math.min(window.innerWidth - w - 12, r.right - w));
+      var top = Math.round(r.bottom + 8);
+      P.el.style.width = w + 'px';
+      P.el.style.left = left + 'px';
+      P.el.style.top = top + 'px';
+      P.el.style.maxHeight = Math.max(220, window.innerHeight - top - 16) + 'px';
+    };
+
+    P.focusables = function(){
+      return Array.prototype.slice.call(
+        P.el.querySelectorAll('button:not([disabled]),input:not([disabled])'))
+        .filter(function(el){ return el.offsetParent !== null; });
+    };
+
+    P.onKey = function(e){
+      if (!P.open) return;
+      if (e.key === 'Escape'){
+        e.preventDefault(); e.stopPropagation();
+        P.close(true);
+        return;
+      }
+      if (e.key === 'Tab'){
+        var f = P.focusables();
+        if (!f.length) return;
+        var first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first){
+          e.preventDefault(); last.focus({preventScroll:true});
+        } else if (!e.shiftKey && document.activeElement === last){
+          e.preventDefault(); first.focus({preventScroll:true});
+        }
+        return;
+      }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+        if (!P.items.length) return;
+        var idx = P.items.indexOf(document.activeElement);
+        if (idx < 0 && !(P.input && document.activeElement === P.input)) return;
+        e.preventDefault();
+        var next = e.key === 'ArrowDown'
+          ? Math.min(P.items.length - 1, idx + 1)
+          : Math.max(0, idx < 0 ? 0 : idx - 1);
+        if (P.items[next]) P.items[next].focus({preventScroll:true});
+      }
+    };
+
+    P.onOutside = function(e){
+      if (!P.open) return;
+      var t = e.target;
+      if (P.el.contains(t)) return;
+      if (t && t.closest && t.closest('#mdb-tools')) return;   /* triggers toggle */
+      P.close(false);
+    };
+
+    P.show = function(trigger){
+      if (xOpenPanel && xOpenPanel !== P) xOpenPanel.close(false);
+      if (sheetOpen) closeSheet(false);                 /* one popover at a time */
+      if (sidebar && sidebar.classList.contains('open')) closeNav();
+      P.trig = trigger || null;
+      P.open = true;
+      xOpenPanel = P;
+      P.el.hidden = false;
+      if (isMobile()){
+        P.scrim.hidden = false;
+        P.el.setAttribute('aria-modal', 'true');
+      } else {
+        P.el.removeAttribute('aria-modal');
+      }
+      if (P.trig) P.trig.setAttribute('aria-expanded', 'true');
+      P.place();
+      var show = function(){ P.el.classList.add('on'); P.scrim.classList.add('on'); };
+      if (reduceMotion()) show(); else requestAnimationFrame(show);
+      document.addEventListener('keydown', P.onKey, true);
+      document.addEventListener('mousedown', P.onOutside, true);
+      document.addEventListener('touchstart', P.onOutside, true);
+      /* Keyboard activation of a control outside this panel produces only a
+         click — no mousedown — so the same handler also runs in the click phase.
+         It still ignores targets inside the panel and inside #mdb-tools, so the
+         trigger's own click and the row clicks are unaffected. */
+      document.addEventListener('click', P.onOutside, true);
+    };
+
+    P.close = function(restoreFocus){
+      if (!P.open) return;
+      P.open = false;
+      if (xOpenPanel === P) xOpenPanel = null;
+      P.el.classList.remove('on');
+      P.scrim.classList.remove('on');
+      P.el.removeAttribute('aria-modal');
+      var t = P.trig;
+      if (t) t.setAttribute('aria-expanded', 'false');
+      document.removeEventListener('keydown', P.onKey, true);
+      document.removeEventListener('mousedown', P.onOutside, true);
+      document.removeEventListener('touchstart', P.onOutside, true);
+      document.removeEventListener('click', P.onOutside, true);
+      var hide = function(){
+        if (!P.open){ P.el.hidden = true; P.scrim.hidden = true; }
+      };
+      if (reduceMotion()) hide(); else setTimeout(hide, 200);
+      if (restoreFocus && t) t.focus({preventScroll:true});
+    };
+
+    return P;
+  }
+
+  var xBmP = null, xSeP = null, xBmBtn = null, xSeBtn = null, xBmCount = null;
+
+  /* ---------- "Meine Lesezeichen" ---------- */
+  function xBmEntries(){
+    var m = bookmarks(), out = [], total = 0;
+    for (var i = 0; i < slugs.length; i++){
+      var slug = slugs[i], pre = slug + '#', ids = [];
+      for (var k in m){ if (k.indexOf(pre) === 0) ids.push(k.slice(pre.length)); }
+      if (!ids.length) continue;
+      var order = [];
+      var meta = metaOf(slug);
+      if (meta) order = meta.ids;
+      else { var ix = xBuild(slug); if (ix) order = ix.secs.map(function(s){ return s.id; }); }
+      ids.sort(function(a, b){
+        var ia = order.indexOf(a), ib = order.indexOf(b);
+        if (ia < 0) ia = 1e6; if (ib < 0) ib = 1e6;
+        return ia - ib;
+      });
+      total += ids.length;
+      out.push({slug: slug, ids: ids});
+    }
+    return {groups: out, total: total};
+  }
+
+  function xBmRender(){
+    var data = xBmEntries();
+    xBmP.list.textContent = '';
+    xBmP.items = [];
+    if (!data.total){
+      xBmP.meta.textContent = 'Noch nichts gespeichert';
+      var li = document.createElement('li');
+      var e = document.createElement('p'); e.className = 'mdbp-e';
+      e.textContent = 'Keine Lesezeichen';
+      li.appendChild(e);
+      xBmP.list.appendChild(li);
+      return;
+    }
+    xBmP.meta.textContent = data.total + (data.total === 1 ? ' Lesezeichen' : ' Lesezeichen') +
+      ' · ' + data.groups.length + (data.groups.length === 1 ? ' Kapitel' : ' Kapitel');
+
+    for (var g = 0; g < data.groups.length; g++){
+      var slug = data.groups[g].slug;
+      var hd = document.createElement('li');
+      hd.className = 'mdbp-hd';
+      hd.textContent = (badgeOf(slug) || '') + ' · ' + xTitle(slug);
+      xBmP.list.appendChild(hd);
+
+      for (var i = 0; i < data.groups[g].ids.length; i++){
+        var id = data.groups[g].ids[i];
+        var info = xLabel(slug, id);
+        var row = document.createElement('li');
+        row.className = 'mdbp-row';
+
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'mdbp-i';
+        b.setAttribute('data-slug', slug);
+        b.setAttribute('data-id', id);
+        var n = document.createElement('span'); n.className = 'mdbp-n';
+        n.textContent = info.num || '·';
+        var t = document.createElement('span'); t.className = 'mdbp-t';
+        t.textContent = info.label || 'Abschnitt';
+        b.appendChild(n); b.appendChild(t);
+        b.setAttribute('aria-label', 'Zu ' + (badgeOf(slug) || xTitle(slug)) +
+          ', Abschnitt ' + (info.num || '') + ' ' + (info.label || '') + ' springen');
+
+        var del = document.createElement('button');
+        del.type = 'button'; del.className = 'mdbp-del';
+        del.setAttribute('data-slug', slug);
+        del.setAttribute('data-id', id);
+        del.setAttribute('aria-label', 'Lesezeichen entfernen: ' +
+          (badgeOf(slug) || '') + ' ' + (info.label || ''));
+        del.title = 'Lesezeichen entfernen';
+        del.innerHTML = xSvg('<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/>');
+
+        row.appendChild(b); row.appendChild(del);
+        xBmP.list.appendChild(row);
+        xBmP.items.push(b);
+      }
+    }
+  }
+
+  function xBmOpen(){
+    xBmRender();
+    xBmP.show(xBmBtn);
+    var first = xBmP.items[0] || xBmP.el.querySelector('.mdbp-x');
+    if (first) first.focus({preventScroll:true});
+  }
+
+  function xUpdateBmCount(){
+    if (!xBmCount) return;
+    var m = bookmarks(), n = 0;
+    for (var k in m) n++;
+    xBmCount.textContent = n > 99 ? '99+' : String(n);
+    xBmCount.hidden = !n;
+    if (xBmBtn) xBmBtn.setAttribute('aria-label',
+      n ? 'Meine Lesezeichen (' + n + ')' : 'Meine Lesezeichen');
+  }
+
+  /* ---------- global search ---------- */
+  var xQ = '', xTimer = 0, xBuilt = 0, xBuilding = false, xAfterBuild = null;
+  var xLIMIT = 60;
+
+  function xEnsureIndex(done){
+    if (xBuilt >= slugs.length){ done(); return; }
+    xAfterBuild = done;
+    if (xBuilding) return;
+    xBuilding = true;
+    (function step(){
+      var t0 = Date.now();
+      /* time-sliced so a 38-chapter index never blocks the reader */
+      while (xBuilt < slugs.length && (Date.now() - t0) < 22){
+        try{ xBuild(slugs[xBuilt]); }catch(e){}
+        xBuilt++;
+      }
+      if (xBuilt < slugs.length){
+        if (xSeP && xSeP.open){
+          xSeP.meta.textContent = 'Suchindex wird erstellt … ' +
+            Math.round(xBuilt / slugs.length * 100) + ' %';
+        }
+        setTimeout(step, 0);
+        return;
+      }
+      xBuilding = false;
+      var cb = xAfterBuild; xAfterBuild = null;
+      if (cb) cb();
+    })();
+  }
+
+  /* German keyboard variants of the RAW QUERY. The indexed text and its 1:1 fold
+     are never touched: only the query is rewritten, then folded with the same
+     xFold(), so a match is still |folded query| characters long and the snippet
+     highlights the book's own spelling (typing "Strasse" marks "Straße").
+
+     Variants are tried in order and the first one that finds anything wins,
+     rather than merging them all. That is deliberate: folding ß to s makes the
+     ASCII form shorter than the word it stands for, so "dass" also spells "daß"
+     -> "das" and "muss" also spells "muß" -> "mus". Merging those in would bury
+     a perfectly good query under substring noise (every "das", every "Museum").
+     Trying them only when the query itself finds nothing keeps every correct
+     query exactly as it is today and costs a few extra indexOf passes in the
+     one case that needs them. It also means no occurrence can be reported
+     twice. */
+  function xVariants(q){
+    var out = [], seen = Object.create(null);
+    function add(v){
+      if (!v) return;
+      var f = xFold(v);
+      if (f.length < 2 || seen[f]) return;
+      seen[f] = 1; out.push(f);
+    }
+    add(q);
+    /* typed ASCII -> the spelling the book uses */
+    add(q.replace(/ae/g, 'ä').replace(/AE/g, 'Ä').replace(/Ae/g, 'Ä')
+         .replace(/oe/g, 'ö').replace(/OE/g, 'Ö').replace(/Oe/g, 'Ö')
+         .replace(/ue/g, 'ü').replace(/UE/g, 'Ü').replace(/Ue/g, 'Ü')
+         .replace(/ss/g, 'ß').replace(/SS/g, 'ß'));
+    /* and the reverse, for a text that spells it the ASCII way */
+    add(q.replace(/[äÄ]/g, 'ae').replace(/[öÖ]/g, 'oe')
+         .replace(/[üÜ]/g, 'ue').replace(/ß/g, 'ss'));
+    return out;
+  }
+
+  function xSearchFolded(f){
+    var L = f.length, res = [], total = 0, chapters = 0;
+    for (var i = 0; i < slugs.length; i++){
+      var ix = xCache[slugs[i]];
+      if (!ix) continue;
+      var hitHere = false;
+      for (var s = 0; s < ix.secs.length; s++){
+        var sec = ix.secs[s], at = sec.f.indexOf(f);
+        if (at < 0) continue;
+        var n = 0, p = at;
+        while (p >= 0){ n++; p = sec.f.indexOf(f, p + L); }
+        total += n;
+        hitHere = true;
+        if (res.length < xLIMIT) res.push({slug: slugs[i], sec: sec, at: at, n: n, len: L});
+      }
+      if (hitHere) chapters++;
+    }
+    return {res: res, total: total, chapters: chapters};
+  }
+
+  function xSearch(q){
+    var vars = xVariants(q);
+    for (var v = 0; v < vars.length; v++){
+      var r = xSearchFolded(vars[v]);
+      if (r.total) return r;
+    }
+    return {res: [], total: 0, chapters: 0};
+  }
+
+  function xSnippet(sec, at, len){
+    var t = sec.t;
+    var from = Math.max(0, at - 54), to = Math.min(t.length, at + len + 66);
+    if (from > 0){ var sp = t.indexOf(' ', from); if (sp > -1 && sp < at) from = sp + 1; }
+    if (to < t.length){ var sp2 = t.lastIndexOf(' ', to); if (sp2 > at + len) to = sp2; }
+    return [(from > 0 ? '… ' : '') + t.slice(from, at),
+            t.slice(at, at + len),
+            t.slice(at + len, to) + (to < t.length ? ' …' : '')];
+  }
+
+  function xSeRender(){
+    var q = xQ.trim();
+    xSeP.list.textContent = '';
+    xSeP.items = [];
+    if (q.length < 2){
+      xSeP.meta.textContent = 'Mindestens 2 Zeichen';
+      var li0 = document.createElement('li');
+      var p0 = document.createElement('p'); p0.className = 'mdbp-e';
+      p0.textContent = 'Suche im ganzen Buch — alle 38 Kapitel.';
+      li0.appendChild(p0); xSeP.list.appendChild(li0);
+      return;
+    }
+    var out = xSearch(q);
+    if (!out.total){
+      xSeP.meta.textContent = 'Keine Treffer';
+      var li1 = document.createElement('li');
+      var p1 = document.createElement('p'); p1.className = 'mdbp-e';
+      p1.textContent = 'Keine Treffer für „' + q + '“';
+      li1.appendChild(p1); xSeP.list.appendChild(li1);
+      return;
+    }
+    xSeP.meta.textContent = out.total + (out.total === 1 ? ' Treffer' : ' Treffer') +
+      ' in ' + out.chapters + (out.chapters === 1 ? ' Kapitel' : ' Kapiteln');
+
+    var lastSlug = null;
+    for (var i = 0; i < out.res.length; i++){
+      var r = out.res[i];
+      if (r.slug !== lastSlug){
+        lastSlug = r.slug;
+        var hd = document.createElement('li');
+        hd.className = 'mdbp-hd';
+        hd.textContent = (badgeOf(r.slug) || '') + ' · ' + xTitle(r.slug);
+        xSeP.list.appendChild(hd);
+      }
+      var row = document.createElement('li');
+      row.className = 'mdbp-row';
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'mdbp-i';
+      b.setAttribute('data-slug', r.slug);
+      b.setAttribute('data-id', r.sec.id);
+      var n = document.createElement('span'); n.className = 'mdbp-n';
+      n.textContent = r.sec.num || '·';
+      var t = document.createElement('span'); t.className = 'mdbp-t';
+      t.textContent = r.sec.label || 'Abschnitt';
+      b.appendChild(n); b.appendChild(t);
+      if (r.n > 1){
+        var c = document.createElement('span'); c.className = 'mdbp-c';
+        c.textContent = '×' + r.n;
+        b.appendChild(c);
+      }
+      var parts = xSnippet(r.sec, r.at, r.len);
+      var sn = document.createElement('span'); sn.className = 'mdbp-s';
+      var s1 = document.createElement('span'); s1.textContent = parts[0];
+      var mk = document.createElement('mark'); mk.textContent = parts[1];
+      var s2 = document.createElement('span'); s2.textContent = parts[2];
+      sn.appendChild(s1); sn.appendChild(mk); sn.appendChild(s2);
+      b.appendChild(sn);
+      b.setAttribute('aria-label', 'Treffer in ' + (badgeOf(r.slug) || xTitle(r.slug)) +
+        ', Abschnitt ' + (r.sec.num || '') + ' ' + (r.sec.label || '') + ' — öffnen');
+      row.appendChild(b);
+      xSeP.list.appendChild(row);
+      xSeP.items.push(b);
+    }
+    if (out.total > out.res.length){
+      var f = document.createElement('li');
+      var pf = document.createElement('p'); pf.className = 'mdbp-f';
+      pf.textContent = 'Die ersten ' + out.res.length +
+        ' Treffer werden angezeigt — Suchbegriff verfeinern für weniger Treffer.';
+      f.appendChild(pf);
+      xSeP.list.appendChild(f);
+    }
+  }
+
+  function xSeQuery(){
+    if (xQ.trim().length < 2){ xSeRender(); return; }
+    if (xBuilt < slugs.length){
+      xSeP.meta.textContent = 'Suchindex wird erstellt …';
+      xEnsureIndex(function(){ if (xSeP.open) xSeRender(); });
+      return;
+    }
+    xSeRender();
+  }
+
+  function xSeOpen(){
+    xSeRender();
+    xSeP.show(xSeBtn);
+    if (xSeP.input) xSeP.input.focus({preventScroll:true});
+    /* always repaint when the index finishes, or the header line would be left
+       reading "Suchindex wird erstellt … 97 %" for a reader who has not typed */
+    xEnsureIndex(function(){ if (xSeP.open) xSeRender(); });
+  }
+
+  /* ---------- build the controls and the two panels ---------- */
+  (function buildV2(){
+    var tb = document.getElementById('topbar');
+    if (!tb) return;
+
+    var tools = document.createElement('div');
+    tools.id = 'mdb-tools';
+    /* the Weiterlernen control keeps its element, id, label and behaviour; it
+       simply becomes the last child of the tool row */
+    if (resumeBtn && resumeBtn.parentNode === tb) tb.removeChild(resumeBtn);
+
+    xSeBtn = document.createElement('button');
+    xSeBtn.type = 'button'; xSeBtn.className = 'mdb-tb'; xSeBtn.id = 'mdb-search-btn';
+    xSeBtn.title = 'Suchen';
+    xSeBtn.setAttribute('aria-label', 'Im Buch suchen');
+    xSeBtn.setAttribute('aria-haspopup', 'dialog');
+    xSeBtn.setAttribute('aria-expanded', 'false');
+    xSeBtn.setAttribute('aria-controls', 'mdb-se-sheet');
+    xSeBtn.innerHTML = xSvg('<circle cx="11" cy="11" r="7"/><path d="M20 20l-4.2-4.2"/>');
+
+    xBmBtn = document.createElement('button');
+    xBmBtn.type = 'button'; xBmBtn.className = 'mdb-tb'; xBmBtn.id = 'mdb-bm-btn';
+    xBmBtn.title = 'Meine Lesezeichen';
+    xBmBtn.setAttribute('aria-label', 'Meine Lesezeichen');
+    xBmBtn.setAttribute('aria-haspopup', 'dialog');
+    xBmBtn.setAttribute('aria-expanded', 'false');
+    xBmBtn.setAttribute('aria-controls', 'mdb-bm-sheet');
+    xBmBtn.innerHTML = xSvg('<path d="M6 4h12v16l-6-4.2L6 20z"/>');
+    xBmCount = document.createElement('span');
+    xBmCount.className = 'tb-n';
+    xBmCount.setAttribute('aria-hidden', 'true');
+    xBmCount.hidden = true;
+    xBmBtn.appendChild(xBmCount);
+
+    tools.appendChild(xSeBtn);
+    tools.appendChild(xBmBtn);
+    if (resumeBtn) tools.appendChild(resumeBtn);
+    tb.appendChild(tools);
+
+    /* Both panels exist from the first paint, so aria-controls resolves before a
+       first open — the same rule the Section Navigator follows. */
+    xBmP = xMakePanel('mdb-bm-sheet', 'Meine Lesezeichen');
+    xSeP = xMakePanel('mdb-se-sheet', 'Im Buch suchen');
+
+    var qw = document.createElement('div'); qw.className = 'mdbp-qw';
+    var q = document.createElement('input');
+    q.type = 'search'; q.className = 'mdbp-q'; q.id = 'mdb-se-q';
+    q.setAttribute('placeholder', 'Wort, Wendung, Regel …');
+    q.setAttribute('aria-label', 'Suchbegriff');
+    q.setAttribute('autocomplete', 'off');
+    q.setAttribute('spellcheck', 'false');
+    q.setAttribute('enterkeyhint', 'search');
+    qw.appendChild(q);
+    xSeP.el.insertBefore(qw, xSeP.list);
+    xSeP.input = q;
+
+    q.addEventListener('input', function(){
+      xQ = q.value;
+      clearTimeout(xTimer);
+      xTimer = setTimeout(xSeQuery, 150);
+    });
+    q.addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){
+        e.preventDefault();
+        clearTimeout(xTimer);
+        xSeQuery();
+        if (xSeP.items[0]) xSeP.items[0].focus({preventScroll:true});
+      }
+    });
+
+    /* one click handler per panel list; the delete control is a sibling of the
+       row button, never nested inside it */
+    xBmP.list.addEventListener('click', function(ev){
+      var del = ev.target && ev.target.closest ? ev.target.closest('.mdbp-del') : null;
+      if (del){
+        ev.preventDefault(); ev.stopPropagation();
+        var ds = del.getAttribute('data-slug'), di = del.getAttribute('data-id');
+        var pos = xBmP.items.indexOf(del.parentNode.querySelector('.mdbp-i'));
+        toggleBookmark(ds, di);                      /* existing storage path */
+        xBmRender();
+        var nx = xBmP.items[Math.min(pos, xBmP.items.length - 1)] ||
+                 xBmP.el.querySelector('.mdbp-x');
+        if (nx) nx.focus({preventScroll:true});
+        return;
+      }
+      var b = ev.target && ev.target.closest ? ev.target.closest('.mdbp-i') : null;
+      if (!b) return;
+      var slug = b.getAttribute('data-slug'), id = b.getAttribute('data-id');
+      xBmP.close(false);
+      xGoto(slug, id);
+    });
+
+    xSeP.list.addEventListener('click', function(ev){
+      var b = ev.target && ev.target.closest ? ev.target.closest('.mdbp-i') : null;
+      if (!b) return;
+      var slug = b.getAttribute('data-slug'), id = b.getAttribute('data-id');
+      xSeP.close(false);
+      xGoto(slug, id);
+    });
+
+    xSeBtn.addEventListener('click', function(ev){
+      ev.preventDefault();
+      if (xSeP.open){ xSeP.close(true); return; }
+      xSeOpen();
+    });
+    xBmBtn.addEventListener('click', function(ev){
+      ev.preventDefault();
+      if (xBmP.open){ xBmP.close(true); return; }
+      xBmOpen();
+    });
+
+    /* Ctrl+K / Cmd+K — desktop shortcut for the search panel */
+    document.addEventListener('keydown', function(e){
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K')){
+        e.preventDefault();
+        if (xSeP.open){ if (xSeP.input) xSeP.input.focus({preventScroll:true}); return; }
+        xSeOpen();
+      }
+    });
+
+    window.addEventListener('resize', function(){
+      if (xBmP && xBmP.open) xBmP.place();
+      if (xSeP && xSeP.open) xSeP.place();
+    }, {passive:true});
+
+    /* A bookmark toggled in the Section Navigator must be reflected by the count
+       bubble and by an open manager. Wrapping the existing function keeps ONE
+       storage path rather than adding a parallel one. */
+    var xBmOrig = toggleBookmark;
+    toggleBookmark = function(slug, id){
+      var on = xBmOrig(slug, id);
+      xUpdateBmCount();
+      if (xBmP && xBmP.open) xBmRender();
+      /* and the sheet's own control, if that chapter's sheet is showing */
+      if (sheetOpen && sheetSlug === slug && sheet){
+        var el = sheet.querySelector('.shx-bm[data-id="' + id + '"]');
+        if (el) setBmState(el, on);
+      }
+      return on;
+    };
+
+    xUpdateBmCount();
+  })();
+
   ensureSheet();
 })();
 </script>
